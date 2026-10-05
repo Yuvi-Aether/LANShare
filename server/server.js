@@ -10,6 +10,14 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = 3000;
 
+// ========================================
+// LAN Device Discovery
+// ========================================
+
+const devices = new Map();
+
+const DEVICE_TIMEOUT = 30 * 1000;
+
 app.use(cors());
 app.use(express.json());
 
@@ -147,7 +155,79 @@ app.get("/api/status", (req, res) => {
         message: "LANShare server is running"
     });
 });
+// ========================================
+// Device Registration
+// ========================================
 
+app.post("/api/devices/register", (req, res) => {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.status(400).json({
+            error: "Device name is required"
+        });
+    }
+
+    // Get the IP address of the device
+    const ip = req.ip.replace("::ffff:", "");
+
+    const device = {
+        name: name.trim(),
+        ip: ip,
+        lastSeen: Date.now()
+    };
+
+    devices.set(ip, device);
+
+    res.json({
+        message: "Device registered",
+        device: device
+    });
+});
+
+
+// ========================================
+// Get Active Devices
+// ========================================
+
+app.get("/api/devices", (req, res) => {
+    const now = Date.now();
+
+    // Remove devices that haven't been seen
+    // for more than 30 seconds
+    for (const [ip, device] of devices) {
+        if (now - device.lastSeen > DEVICE_TIMEOUT) {
+            devices.delete(ip);
+        }
+    }
+
+    res.json(
+        Array.from(devices.values())
+    );
+});
+
+
+// ========================================
+// Device Heartbeat
+// ========================================
+
+app.post("/api/devices/heartbeat", (req, res) => {
+    const ip = req.ip.replace("::ffff:", "");
+
+    const device = devices.get(ip);
+
+    if (!device) {
+        return res.status(404).json({
+            error: "Device is not registered"
+        });
+    }
+
+    device.lastSeen = Date.now();
+
+    res.json({
+        message: "Heartbeat received"
+    });
+});
 /* =========================================================
    UPLOAD
 ========================================================= */
