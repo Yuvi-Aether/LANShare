@@ -449,7 +449,7 @@ app.get(
 
         if (
             Date.now() -
-                pairing.createdAt >
+            pairing.createdAt >
             PAIR_TOKEN_LIFETIME
         ) {
 
@@ -516,7 +516,7 @@ app.post(
 
         if (
             Date.now() -
-                pairing.createdAt >
+            pairing.createdAt >
             PAIR_TOKEN_LIFETIME
         ) {
 
@@ -745,9 +745,9 @@ app.post(
 
         if (
             clientIP !==
-                pairing.senderIP &&
+            pairing.senderIP &&
             clientIP !==
-                pairing.receiverIP
+            pairing.receiverIP
         ) {
 
             return res.status(403).json({
@@ -813,19 +813,19 @@ setInterval(
                     ) {
                         return (
                             now -
-                                pairing.createdAt <
+                            pairing.createdAt <
                             PAIR_TOKEN_LIFETIME
                         );
                     }
 
                     const senderAlive =
                         now -
-                            pairing.senderLastSeen <
+                        pairing.senderLastSeen <
                         HEARTBEAT_TIMEOUT;
 
                     const receiverAlive =
                         now -
-                            pairing.receiverLastSeen <
+                        pairing.receiverLastSeen <
                         HEARTBEAT_TIMEOUT;
 
                     return (
